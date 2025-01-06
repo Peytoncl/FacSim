@@ -51,14 +51,12 @@ GLuint LoadTexture(const char* filename)
     return textureID;
 }
 
-void RenderSprite(int col, int row, ScreenPosition pos) 
+void RenderSprite(int col, int row, float scale, ScreenPosition pos) 
 {
     float uMin = col * spriteWidth;
     float vMin = row * spriteHeight;
     float uMax = uMin + spriteWidth;
     float vMax = vMin + spriteHeight;
-
-    float scale = 0.1f;
 
     glBegin(GL_QUADS);
         glTexCoord2f(uMin, vMax); glVertex2f(-scale + pos.x, -scale + pos.y); // Bottom-left (flipped)

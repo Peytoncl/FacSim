@@ -9,7 +9,7 @@
 
 #include "windows.h"
 
-#include "graphics.h"
+#include "world.h"
 
 //Key input setup
 #define KEY_COUNT 256 
@@ -19,6 +19,8 @@ bool keys[KEY_COUNT];
 //Game values (non customizable)
 float CENTER_X = (WINDOW_W / 2);
 float CENTER_Y = (WINDOW_H / 2);
+
+float zoom = 0.1f;
 
 GLuint textureID; //Spritesheet textureId in GPU
 
@@ -43,9 +45,23 @@ void init()
 
   glLoadIdentity();
 
+  glEnable(GL_TEXTURE_2D);
+
+  glEnable(GL_BLEND);
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
   gluOrtho2D(-1.0, 1.0, -1.0, 1.0);  // Adjust as needed
 
   glMatrixMode(GL_MODELVIEW);
+}
+
+void windowClosed()
+{
+
+  glDisable(GL_BLEND);
+
+  glDisable(GL_TEXTURE_2D);
 }
 
 void display() 
@@ -53,19 +69,29 @@ void display()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
-  glEnable(GL_TEXTURE_2D);
-
-
   glBindTexture(GL_TEXTURE_2D, textureID);
 
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){0, 0, 1}, zoom));
 
-  RenderSprite(1, 0, (ScreenPosition){0, 0});
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){1, 0, 1}, zoom));
 
-  RenderSprite(1, 0, (ScreenPosition){0.1f, 0});
+  RenderSprite(1, 0, zoom, (ScreenPosition){0, 0, 0});
 
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){1, 0, 0}, zoom));
 
-  glDisable(GL_TEXTURE_2D);
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){2, 0, 1}, zoom));
 
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){2, 0, 0}, zoom));
+
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){3, 0, 0}, zoom));
+
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){0, 1, 1}, zoom));
+
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){1, 1, 1}, zoom));
+
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){2, 1, 0}, zoom));
+
+  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){0, 2, 1}, zoom));
 
   glutSwapBuffers();
 }
@@ -111,6 +137,8 @@ int main(int argc, char** argv)
 
   glutDisplayFunc(display); 
   glutIdleFunc(update);      
+
+  atexit(windowClosed);
 
   glutKeyboardFunc(keyDown);  
   glutKeyboardUpFunc(keyUp);  
