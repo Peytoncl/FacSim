@@ -1,5 +1,8 @@
 #ifndef GRAPHICS_H
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "external_headers/stb_image.h"
+
 #define WINDOW_W 800
 #define WINDOW_H 600
 
@@ -13,7 +16,61 @@ typedef struct
 {
     float x;
     float y;
-} Vector2;
+} ScreenPosition;
+
+
+/*
+### SPRITES ###
+*/
+
+float spriteWidth = 32.0f / 2048.0f;
+float spriteHeight = 32.0f / 2048.0f;
+
+GLuint LoadTexture(const char* filename) 
+{
+    int width, height, channels;
+
+    unsigned char* data = stbi_load(filename, &width, &height, &channels, 0);
+    if (!data) 
+    {
+        printf("Failed to load image: %s\n", filename);
+        return 0;
+    }
+
+    GLuint textureID;
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    stbi_image_free(data); 
+    return textureID;
+}
+
+void RenderSprite(int col, int row, ScreenPosition pos) 
+{
+    float uMin = col * spriteWidth;
+    float vMin = row * spriteHeight;
+    float uMax = uMin + spriteWidth;
+    float vMax = vMin + spriteHeight;
+
+    float scale = 0.1f;
+
+    glBegin(GL_QUADS);
+        glTexCoord2f(uMin, vMax); glVertex2f(-scale + pos.x, -scale + pos.y); // Bottom-left (flipped)
+        glTexCoord2f(uMax, vMax); glVertex2f(scale + pos.x, -scale + pos.y); // Bottom-right (flipped)
+        glTexCoord2f(uMax, vMin); glVertex2f(scale + pos.x, scale + pos.y); // Top-right (flipped)
+        glTexCoord2f(uMin, vMin); glVertex2f(-scale + pos.x, scale + pos.y); // Top-left (flipped)
+    glEnd();
+}
+
+/*
+### GRAPHICS ###
+*/
 
 void drawCircle(GLfloat x, GLfloat y, GLfloat radius, float r, float g, float b)
 {
@@ -33,7 +90,8 @@ void drawCircle(GLfloat x, GLfloat y, GLfloat radius, float r, float g, float b)
 
 }
 
-bool areCirclesOverlapping(float cx1, float cy1, float r1, float cx2, float cy2, float r2) {
+bool areCirclesOverlapping(float cx1, float cy1, float r1, float cx2, float cy2, float r2) 
+{
     float dx = cx2 - cx1;
     float dy = cy2 - cy1;
     float distanceSquared = dx * dx + dy * dy;
@@ -44,7 +102,8 @@ bool areCirclesOverlapping(float cx1, float cy1, float r1, float cx2, float cy2,
     return distanceSquared <= radiiSumSquared;
 }
 
-bool isPointInCircle(float px, float py, float cx, float cy, float radius) {
+bool isPointInCircle(float px, float py, float cx, float cy, float radius) 
+{
     float dx = px - cx;
     float dy = py - cy;
     float distanceSquared = dx * dx + dy * dy;
@@ -54,16 +113,16 @@ bool isPointInCircle(float px, float py, float cx, float cy, float radius) {
 
 void drawText(GLfloat x, GLfloat y, int font, char *string, float r, float g, float b)
 {
-  glColor3f(r, g, b);
-  glRasterPos2f(x, y);
+    glColor3f(r, g, b);
+    glRasterPos2f(x, y);
 
-  int len, i;
-  len = (int)strlen(string);
+    int len, i;
+    len = (int)strlen(string);
 
-  for (i = 0; i < len; i++) 
-  {
-    glutBitmapCharacter(font, string[i]);
-  }
+    for (i = 0; i < len; i++) 
+    {
+        glutBitmapCharacter(font, string[i]);
+    }
 }
 
 #endif
