@@ -4,17 +4,19 @@
 
 #define PI 3.14159265358979323846
 
-unsigned int seed;
-
 //Initialize random seed based on the current time
 void RandomInitialization()
 {
-    seed = time(NULL);
-    srand(seed);
+    srand(time(NULL));
 }
 
-// Returns a pseudo-random int with "min" being the lowest and "max" being the highest
+// Returns a random int with "min" being the lowest and "max" being the highest
 int RandomInt(int min, int max)
 {
     return (rand() % (max - min + 1)) + min;
+}
+
+//Generate random 32 bit seed for world
+uint32_t GenerateSeed() {
+    return ((uint32_t)rand() << 16) | (uint32_t)rand();
 }

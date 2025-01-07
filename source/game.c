@@ -20,19 +20,25 @@ bool keys[KEY_COUNT];
 float CENTER_X = (WINDOW_W / 2);
 float CENTER_Y = (WINDOW_H / 2);
 
-float zoom = 0.1f;
+ScreenPosition cameraPosition = (ScreenPosition){0, 0};
+
+float zoom = 0.05f;
 
 GLuint textureID; //Spritesheet textureId in GPU
 
+Chunk chunk;
+
+Chunk chunk1;
+
 void init()
 {
-  glClearColor(0, 0, 0, 0);
+  glClearColor(0, 0, 0, 0); //make background black
 
-  char *buffer = (char *)malloc(1024);
+  char *buffer = (char*)malloc(1024);
 
   if (getcwd(buffer, 1024) != NULL) 
   {
-    textureID = LoadTexture(strcat(buffer, "/images/spritesheet.png"));
+    textureID = LoadTexture(strcat(buffer, "/images/spritesheet.png")); //Load spritesheet texture buffer to memory
   } 
   else 
   {
@@ -40,6 +46,17 @@ void init()
   }
 
   free(buffer); 
+
+
+  RandomInitialization(); //Initialize math randomization
+
+  InitializeWorld(); //Initialize the world (gonna add loading world)
+
+
+  chunk = LoadChunk(chunk, (ChunkPosition){0, 0}); //Generate chunk 1
+
+  chunk1 = LoadChunk(chunk1, (ChunkPosition){1, 0}); //Generate chunk 2
+
 
   glMatrixMode(GL_PROJECTION);
 
@@ -51,14 +68,13 @@ void init()
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  gluOrtho2D(-1.0, 1.0, -1.0, 1.0);  // Adjust as needed
+  gluOrtho2D(-1.0, 1.0, -1.0, 1.0); 
 
   glMatrixMode(GL_MODELVIEW);
 }
 
 void windowClosed()
 {
-
   glDisable(GL_BLEND);
 
   glDisable(GL_TEXTURE_2D);
@@ -68,30 +84,55 @@ void display()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  glBindTexture(GL_TEXTURE_2D, textureID); //bind texture to future texture calls in this display update
 
-  glBindTexture(GL_TEXTURE_2D, textureID);
+  //RenderSprite(1, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){0, 0, 1}, zoom));
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){0, 0, 1}, zoom));
+  //gonna use a World variable later to loop through loaded chunks
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){1, 0, 1}, zoom));
+  //Load chunk 1
 
-  RenderSprite(1, 0, zoom, (ScreenPosition){0, 0, 0});
+  for (int y = 0; y < 16; y++)
+  {
+    for (int x = 0; x < 16; x++)
+    {
+      for (int z = 15; z >= 0; z--)
+      {
+      
+        Block block = chunk.blocks[x][y][z];
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){1, 0, 0}, zoom));
+        if (block.blockID == 0) continue;
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){2, 0, 1}, zoom));
+        int chunkX = chunk.position.x * CHUNK_LENGTH;
+        int chunkZ = chunk.position.y * CHUNK_WIDTH;
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){2, 0, 0}, zoom));
+        RenderSprite(block.blockID, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){x + cameraPosition.x + chunkX, y, z + cameraPosition.y + chunkZ}, zoom)); //Rendering blockId with (zoom) scale, and a world position casted to a screen position
+      
+      }
+    }
+  }
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){3, 0, 0}, zoom));
+  //Load chunk 2
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){0, 1, 1}, zoom));
+  for (int y = 0; y < 16; y++)
+  {
+    for (int x = 0; x < 16; x++)
+    {
+      for (int z = 15; z >= 0; z--)
+      {
+      
+        Block block = chunk1.blocks[x][y][z];
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){1, 1, 1}, zoom));
+        if (block.blockID == 0) continue;
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){2, 1, 0}, zoom));
+        int chunkX = chunk1.position.x * CHUNK_LENGTH;
+        int chunkZ = chunk1.position.y * CHUNK_WIDTH;
 
-  RenderSprite(1, 0, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){0, 2, 1}, zoom));
+        RenderSprite(block.blockID, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){x + cameraPosition.x + chunkX, y, z + cameraPosition.y + chunkZ}, zoom)); //Rendering blockId with (zoom) scale, and a world position casted to a screen position
+      
+      }
+    }
+  }
 
   glutSwapBuffers();
 }
@@ -106,17 +147,35 @@ void keyUp(unsigned char key, int x, int y)
   keys[key] = false; 
 }
 
+float cameraSpeedMultiplier = 0.001f; //temporary variable just used as camera speed
+
 void update()
 {
+  //move camera gonna make better later
 
-
+  if (keys['w'])
+  {
+    cameraPosition.y -= 1 * cameraSpeedMultiplier;
+  }
+  if (keys['s'])
+  {
+    cameraPosition.y += 1 * cameraSpeedMultiplier;
+  }
+  if (keys['a'])
+  {
+    cameraPosition.x += 1 * cameraSpeedMultiplier;
+  }
+  if (keys['d'])
+  {
+    cameraPosition.x -= 1 * cameraSpeedMultiplier;
+  }
 
   glutPostRedisplay();
 }
 
 void windowResize(int width, int height)
 {
-  glutReshapeWindow(WINDOW_W, WINDOW_H);
+  glutReshapeWindow(WINDOW_W, WINDOW_H); //lock resizing window for now
 }
 
 int main(int argc, char** argv) 
