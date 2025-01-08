@@ -30,6 +30,10 @@ Chunk chunk;
 
 Chunk chunk1;
 
+Chunk chunk2;
+
+Chunk chunk3;
+
 void init()
 {
   glClearColor(0, 0, 0, 0); //make background black
@@ -57,6 +61,9 @@ void init()
 
   chunk1 = LoadChunk(chunk1, (ChunkPosition){1, 0}); //Generate chunk 2
 
+  chunk2 = LoadChunk(chunk2, (ChunkPosition){0, 1});
+
+  chunk3 = LoadChunk(chunk3, (ChunkPosition){1, 1});
 
   glMatrixMode(GL_PROJECTION);
 
@@ -92,47 +99,13 @@ void display()
 
   //Load chunk 1
 
-  for (int y = 0; y < 16; y++)
-  {
-    for (int x = 0; x < 16; x++)
-    {
-      for (int z = 15; z >= 0; z--)
-      {
-      
-        Block block = chunk.blocks[x][y][z];
+  RenderChunk(chunk2, cameraPosition, zoom);
 
-        if (block.blockID == 0) continue;
+  RenderChunk(chunk3, cameraPosition, zoom);
 
-        int chunkX = chunk.position.x * CHUNK_LENGTH;
-        int chunkZ = chunk.position.y * CHUNK_WIDTH;
+  RenderChunk(chunk, cameraPosition, zoom);
 
-        RenderSprite(block.blockID, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){x + cameraPosition.x + chunkX, y, z + cameraPosition.y + chunkZ}, zoom)); //Rendering blockId with (zoom) scale, and a world position casted to a screen position
-      
-      }
-    }
-  }
-
-  //Load chunk 2
-
-  for (int y = 0; y < 16; y++)
-  {
-    for (int x = 0; x < 16; x++)
-    {
-      for (int z = 15; z >= 0; z--)
-      {
-      
-        Block block = chunk1.blocks[x][y][z];
-
-        if (block.blockID == 0) continue;
-
-        int chunkX = chunk1.position.x * CHUNK_LENGTH;
-        int chunkZ = chunk1.position.y * CHUNK_WIDTH;
-
-        RenderSprite(block.blockID, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){x + cameraPosition.x + chunkX, y, z + cameraPosition.y + chunkZ}, zoom)); //Rendering blockId with (zoom) scale, and a world position casted to a screen position
-      
-      }
-    }
-  }
+  RenderChunk(chunk1, cameraPosition, zoom);
 
   glutSwapBuffers();
 }
@@ -147,7 +120,7 @@ void keyUp(unsigned char key, int x, int y)
   keys[key] = false; 
 }
 
-float cameraSpeedMultiplier = 0.001f; //temporary variable just used as camera speed
+float cameraSpeedMultiplier = 0.0005f; //temporary variable just used as camera speed
 
 void update()
 {
