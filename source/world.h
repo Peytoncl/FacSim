@@ -110,7 +110,7 @@ Chunk LoadChunk(Chunk chunk, ChunkPosition position)
             {
                 block = (Block){2, 0};
 
-                for (int i = height + 1; i <= waterHeight + groundHeight; i++)
+                for (int i = height + 1; i <= waterHeight + groundHeight; i++) //Set every block up to sea level to water
                 {
                     Block waterBlock = (Block){3, 1}; //water with transparent meta data
 
