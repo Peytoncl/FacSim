@@ -22,7 +22,7 @@ float CENTER_Y = (WINDOW_H / 2);
 
 ScreenPosition cameraPosition = (ScreenPosition){0, 0};
 
-float zoom = 0.05f;
+float zoom = 0.045f;
 
 GLuint textureID; //Spritesheet textureId in GPU
 

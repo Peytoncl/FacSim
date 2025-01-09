@@ -74,7 +74,7 @@ float waterHeight = 5;
 
 void InitializeWorld()
 {
-    seed = GenerateSeed() * 0.001f; //generate world seed, gonna add loading files later
+    seed = GenerateSeed() * 0.0001f; //generate world seed, gonna add loading files later
 
     printf("World Seed: %f\n", seed);
 }
@@ -104,7 +104,7 @@ Chunk LoadChunk(Chunk chunk, ChunkPosition position)
 
             Block block;
 
-            printf("%d\n", height);
+            //printf("%d\n", height);
 
             if (height < waterHeight + groundHeight) //water
             {
