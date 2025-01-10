@@ -43,15 +43,23 @@ typedef struct
 
 
 #define CHUNK_WIDTH 16
-#define CHUNK_HEIGHT 32
+#define CHUNK_HEIGHT 128
 #define CHUNK_LENGTH 16
+
+typedef enum {
+    PLAINS,
+    DESERT,
+    FOREST,
+    MOUNTAINS,
+    OCEAN
+} Biome;
 
 typedef struct 
 {
+    Biome biomeMap[CHUNK_WIDTH][CHUNK_LENGTH];
     Block blocks[CHUNK_WIDTH][CHUNK_HEIGHT][CHUNK_LENGTH];
     ChunkPosition position;
 } Chunk;
-
 
 #define WORLD_SIZE 256
 
@@ -59,7 +67,7 @@ typedef struct
 {
     Chunk chunks[WORLD_SIZE];
 
-    //Seed needs to go here eventually
+    uint32_t seed; //Seed needs to go here eventually
 } World;
 
 float seed;
@@ -68,15 +76,100 @@ float noiseScale = 0.1f;
 
 float maxHeight = 11; 
 
-float groundHeight = 8;
+float groundHeight = 50;
+
+float mountainPeakHeight = CHUNK_HEIGHT - CHUNK_HEIGHT / 4;
 
 float waterHeight = 5;
+
+
+float biomeScale = 0.01f;
 
 void InitializeWorld()
 {
     seed = GenerateSeed() * 0.0001f; //generate world seed, gonna add loading files later
 
     printf("World Seed: %f\n", seed);
+}
+
+WorldPosition CheckIfTouchingBlock(Chunk chunk, WorldPosition position, int blockId)
+{
+    for (int i = 0; i < 4; i++)
+    {
+        Block checkBlock;
+
+        WorldPosition checkingLocation;
+
+        if (i == 0)
+        {
+            checkingLocation = (WorldPosition){(chunk.position.x * CHUNK_WIDTH) - position.x + 1, position.y, (chunk.position.y * CHUNK_LENGTH) - position.z};
+
+            checkBlock = chunk.blocks[checkingLocation.x][checkingLocation.y][checkingLocation.z];
+        }
+        else if (i == 1)
+        {
+            checkingLocation = (WorldPosition){(chunk.position.x * CHUNK_WIDTH) - position.x, position.y, (chunk.position.y * CHUNK_LENGTH) - position.z + 1};
+
+            checkBlock = chunk.blocks[checkingLocation.x][checkingLocation.y][checkingLocation.z];
+        }
+        else if (i == 2)
+        {
+            checkingLocation = (WorldPosition){(chunk.position.x * CHUNK_WIDTH) - position.x, position.y, (chunk.position.y * CHUNK_LENGTH) - position.z - 1};
+
+            checkBlock = chunk.blocks[checkingLocation.x][checkingLocation.y][checkingLocation.z];
+        }
+        else if (i == 3)
+        {
+            checkingLocation = (WorldPosition){(chunk.position.x * CHUNK_WIDTH) - position.x - 1, position.y, (chunk.position.y * CHUNK_LENGTH) - position.z};
+
+            checkBlock = chunk.blocks[checkingLocation.x][checkingLocation.y][checkingLocation.z];
+        }
+
+        if (checkBlock.blockID == blockId)
+        {
+            return checkingLocation;
+        }
+    }
+
+    return position;
+}
+
+Biome GetBiome(Chunk* chunk, WorldPosition position)
+{
+    int x = (chunk->position.x * CHUNK_WIDTH) + position.x;
+    int z = (chunk->position.y * CHUNK_LENGTH) + position.z;
+
+    float noiseValue = stb_perlin_noise3(x * biomeScale + seed, 0, z * biomeScale + seed, 0, 0, 0);
+
+    printf("%f\n", noiseValue);
+
+    if (noiseValue > 0.6f) 
+    {
+        //printf("mountains");
+        chunk->biomeMap[position.x][position.z] = MOUNTAINS;
+    } 
+    else if (noiseValue > 0.2f) 
+    {
+        //printf("forest");
+        chunk->biomeMap[position.x][position.z] = FOREST;
+    } 
+    else if (noiseValue > -0.2f) 
+    {
+        //printf("plains");
+        chunk->biomeMap[position.x][position.z] = PLAINS;
+    } 
+    else if (noiseValue > -0.6f) 
+    {
+        //printf("desert");
+        chunk->biomeMap[position.x][position.z] = DESERT;
+    } 
+    else 
+    {
+        //printf("ocean");
+        chunk->biomeMap[position.x][position.z] = OCEAN;
+    }
+
+    printf("%d\n", chunk->biomeMap[position.x][position.z]);
 }
 
 Chunk LoadChunk(Chunk chunk, ChunkPosition position)
@@ -90,6 +183,8 @@ Chunk LoadChunk(Chunk chunk, ChunkPosition position)
     {
         for (int z = 0; z < CHUNK_LENGTH; z++)
         {
+            GetBiome(&chunk, (WorldPosition){x, 0, z});
+
             float rawNoise = stb_perlin_noise3((x + chunkX) * noiseScale + seed, 0.0f, (z + chunkZ) * noiseScale + seed, 0, 0, 0); //use stb_perlin.h for perlin noise value at x and z positions with a chunk and seed offset and noise multiplier
 
             float normalizedNoise = (rawNoise + 1.0f) * 0.5f;
@@ -104,29 +199,50 @@ Chunk LoadChunk(Chunk chunk, ChunkPosition position)
 
             Block block;
 
-            //printf("%d\n", height);
-
-            if (height < waterHeight + groundHeight) //water
+            switch (chunk.biomeMap[x][z]) 
             {
-                block = (Block){2, 0};
+                case MOUNTAINS:
 
-                for (int i = height + 1; i <= waterHeight + groundHeight; i++) //Set every block up to sea level to water
+                    block.blockID = 5;
+
+                    height += 10; 
+
+                    break;
+                case DESERT:
+
+                    block.blockID = 4;
+
+                    height -= 5;
+
+                    break;
+                case OCEAN:
+
+                    block.blockID = 2;
+                    block.metadata = 1;
+
+                    height -= 10; 
+
+                    break;
+                default:
+
+                    block.blockID = 1;
+
+                    break; // Plains and Forest use base height
+            }
+
+            if (height < 0) height = 0;
+            if (height > CHUNK_HEIGHT) height = CHUNK_HEIGHT;
+
+            if (chunk.biomeMap[x][z] == OCEAN)
+            {
+                for (int i = height + 1; i <= height + 20; i++)
                 {
-                    Block waterBlock = (Block){3, 1}; //water with transparent meta data
-
-                    chunk.blocks[x][i][z] = waterBlock;
+                    chunk.blocks[x][i][z] = (Block){3, 1}; //water
                 }
             }
-            else block = (Block){1, 0}; //grass block with no metadata
 
-            if (block.blockID == 1) //Apply dirt block underneath grass block
-            {
-                Block dirtBlock = (Block){2, 0};
+            chunk.blocks[x][height][z] = block;
 
-                chunk.blocks[x][height - 1][z] = dirtBlock;
-            }
-
-            chunk.blocks[x][height][z] = block; //apply noise height to the block at x and z
         }
     }
 

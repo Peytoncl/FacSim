@@ -51,7 +51,6 @@ void init()
 
   free(buffer); 
 
-
   RandomInitialization(); //Initialize math randomization
 
   InitializeWorld(); //Initialize the world (gonna add loading world)
