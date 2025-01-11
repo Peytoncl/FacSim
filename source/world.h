@@ -49,6 +49,7 @@ typedef struct
 typedef enum {
     PLAINS,
     DESERT,
+    BEACH,
     FOREST,
     MOUNTAINS,
     OCEAN
@@ -83,55 +84,13 @@ float mountainPeakHeight = CHUNK_HEIGHT - CHUNK_HEIGHT / 4;
 float waterHeight = 5;
 
 
-float biomeScale = 0.01f;
+float biomeScale = 0.001f;
 
 void InitializeWorld()
 {
     seed = GenerateSeed() * 0.0001f; //generate world seed, gonna add loading files later
 
     printf("World Seed: %f\n", seed);
-}
-
-WorldPosition CheckIfTouchingBlock(Chunk chunk, WorldPosition position, int blockId)
-{
-    for (int i = 0; i < 4; i++)
-    {
-        Block checkBlock;
-
-        WorldPosition checkingLocation;
-
-        if (i == 0)
-        {
-            checkingLocation = (WorldPosition){(chunk.position.x * CHUNK_WIDTH) - position.x + 1, position.y, (chunk.position.y * CHUNK_LENGTH) - position.z};
-
-            checkBlock = chunk.blocks[checkingLocation.x][checkingLocation.y][checkingLocation.z];
-        }
-        else if (i == 1)
-        {
-            checkingLocation = (WorldPosition){(chunk.position.x * CHUNK_WIDTH) - position.x, position.y, (chunk.position.y * CHUNK_LENGTH) - position.z + 1};
-
-            checkBlock = chunk.blocks[checkingLocation.x][checkingLocation.y][checkingLocation.z];
-        }
-        else if (i == 2)
-        {
-            checkingLocation = (WorldPosition){(chunk.position.x * CHUNK_WIDTH) - position.x, position.y, (chunk.position.y * CHUNK_LENGTH) - position.z - 1};
-
-            checkBlock = chunk.blocks[checkingLocation.x][checkingLocation.y][checkingLocation.z];
-        }
-        else if (i == 3)
-        {
-            checkingLocation = (WorldPosition){(chunk.position.x * CHUNK_WIDTH) - position.x - 1, position.y, (chunk.position.y * CHUNK_LENGTH) - position.z};
-
-            checkBlock = chunk.blocks[checkingLocation.x][checkingLocation.y][checkingLocation.z];
-        }
-
-        if (checkBlock.blockID == blockId)
-        {
-            return checkingLocation;
-        }
-    }
-
-    return position;
 }
 
 Biome GetBiome(Chunk* chunk, WorldPosition position)
@@ -143,33 +102,50 @@ Biome GetBiome(Chunk* chunk, WorldPosition position)
 
     printf("%f\n", noiseValue);
 
-    if (noiseValue > 0.6f) 
+    if (noiseValue > 0.8f) 
     {
-        //printf("mountains");
-        chunk->biomeMap[position.x][position.z] = MOUNTAINS;
+        chunk->biomeMap[position.x][position.z] = OCEAN;
+    } 
+    else if (noiseValue > 0.6f) 
+    {
+        chunk->biomeMap[position.x][position.z] = BEACH;
+    } 
+    else if (noiseValue > 0.4f) 
+    {
+        chunk->biomeMap[position.x][position.z] = PLAINS;
     } 
     else if (noiseValue > 0.2f) 
     {
-        //printf("forest");
-        chunk->biomeMap[position.x][position.z] = FOREST;
+        chunk->biomeMap[position.x][position.z] = MOUNTAINS;
     } 
-    else if (noiseValue > -0.2f) 
+    else if (noiseValue > 0.0f)
     {
-        //printf("plains");
-        chunk->biomeMap[position.x][position.z] = PLAINS;
-    } 
-    else if (noiseValue > -0.6f) 
-    {
-        //printf("desert");
         chunk->biomeMap[position.x][position.z] = DESERT;
-    } 
-    else 
+    }
+    else if (noiseValue > -0.2f)
     {
-        //printf("ocean");
+        chunk->biomeMap[position.x][position.z] = PLAINS;
+    }
+    else if (noiseValue > -0.4f)
+    {
+        chunk->biomeMap[position.x][position.z] = MOUNTAINS;
+    }
+    else if (noiseValue > -0.6f)
+    {
+        chunk->biomeMap[position.x][position.z] = DESERT;
+    }
+    else if (noiseValue > -0.8f)
+    {
+        chunk->biomeMap[position.x][position.z] = BEACH;
+    }
+    else
+    {
         chunk->biomeMap[position.x][position.z] = OCEAN;
     }
 
-    printf("%d\n", chunk->biomeMap[position.x][position.z]);
+
+
+    //printf("%d\n", chunk->biomeMap[position.x][position.z]);
 }
 
 Chunk LoadChunk(Chunk chunk, ChunkPosition position)
@@ -201,45 +177,23 @@ Chunk LoadChunk(Chunk chunk, ChunkPosition position)
 
             switch (chunk.biomeMap[x][z]) 
             {
-                case MOUNTAINS:
-
-                    block.blockID = 5;
-
-                    height += 10; 
-
-                    break;
-                case DESERT:
-
-                    block.blockID = 4;
-
-                    height -= 5;
-
-                    break;
-                case OCEAN:
-
-                    block.blockID = 2;
-                    block.metadata = 1;
-
-                    height -= 10; 
-
-                    break;
-                default:
-
-                    block.blockID = 1;
-
-                    break; // Plains and Forest use base height
+                case MOUNTAINS: block.blockID = 5; break;
+                case DESERT: case BEACH: block.blockID = 4; break;
+                case OCEAN: block.blockID = 3; block.metadata = 1; break;
+                default: block.blockID = 1; break;
             }
 
             if (height < 0) height = 0;
             if (height > CHUNK_HEIGHT) height = CHUNK_HEIGHT;
 
+            /*
             if (chunk.biomeMap[x][z] == OCEAN)
             {
                 for (int i = height + 1; i <= height + 20; i++)
                 {
-                    chunk.blocks[x][i][z] = (Block){3, 1}; //water
+                    chunk.blocks[x][i][z] = (Block){3, 1}; 
                 }
-            }
+            }*/
 
             chunk.blocks[x][height][z] = block;
 
