@@ -12,4 +12,4 @@ isometric simulator
 
 ![image](https://github.com/user-attachments/assets/8b614766-c994-461b-a30d-d47a8e0c5086)
 
-![image](https://github.com/user-attachments/assets/6ad4d812-76e4-4565-9ee1-ed9fceb7c5e8)
+![{15170476-7951-47CE-BDF5-598D519B66FA}](https://github.com/user-attachments/assets/670470b7-6b72-4b10-9fbf-f6fee9dd0868)
