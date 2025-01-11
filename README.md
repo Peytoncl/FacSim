@@ -4,7 +4,7 @@ isometric simulator
 
 # Current sprites
 
-![image](https://github.com/user-attachments/assets/18e46490-17a2-457c-a79c-0b535ac732c3)
+![image](https://github.com/user-attachments/assets/07cbba0a-dc57-4855-92ab-11fd701b3743)
 
 # Current world generation
 
