@@ -10,6 +10,7 @@
 #include "windows.h"
 
 #include "world.h"
+#include "game.h"
 
 //Key input setup
 #define KEY_COUNT 256 
@@ -21,18 +22,19 @@ float CENTER_X = (WINDOW_W / 2);
 float CENTER_Y = (WINDOW_H / 2);
 
 ScreenPosition cameraPosition = (ScreenPosition){0, 0};
+WorldPosition* cameraWorldPosition = &(WorldPosition){0, 0, 0};
 
 float zoom = 0.045f;
 
 GLuint textureID; //Spritesheet textureId in GPU
 
-Chunk chunk;
 
-Chunk chunk1;
+Settings settings = (Settings){2}; //Render distance of 2 
 
-Chunk chunk2;
+Player player;
 
-Chunk chunk3;
+World world;
+
 
 void init()
 {
@@ -53,16 +55,8 @@ void init()
 
   RandomInitialization(); //Initialize math randomization
 
-  InitializeWorld(); //Initialize the world (gonna add loading world)
+  InitializeWorld(&world); //Initialize the world (gonna add loading world)
 
-
-  chunk = LoadChunk(chunk, (ChunkPosition){0, 0}); //Generate chunk 1
-
-  chunk1 = LoadChunk(chunk1, (ChunkPosition){1, 0}); //Generate chunk 2
-
-  chunk2 = LoadChunk(chunk2, (ChunkPosition){0, 1});
-
-  chunk3 = LoadChunk(chunk3, (ChunkPosition){1, 1});
 
   glMatrixMode(GL_PROJECTION);
 
@@ -89,22 +83,11 @@ void windowClosed()
 void display() 
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glBindTexture(GL_TEXTURE_2D, textureID); //bind texture to future texture calls in this display update
-
-  //RenderSprite(1, zoom, (ScreenPosition)WorldToScreenPosition((WorldPosition){0, 0, 1}, zoom));
-
-  //gonna use a World variable later to loop through loaded chunks
-
-  //Load chunk 1
-
-  RenderChunk(chunk2, cameraPosition, zoom);
-
-  RenderChunk(chunk3, cameraPosition, zoom);
-
-  RenderChunk(chunk, cameraPosition, zoom);
-
-  RenderChunk(chunk1, cameraPosition, zoom);
+ 
+  for (int i = 0; i < world.loadedChunkCount; i++)
+  {
+    RenderChunk(world.loadedChunks[i], cameraPosition, zoom);
+  }
 
   glutSwapBuffers();
 }
@@ -119,10 +102,31 @@ void keyUp(unsigned char key, int x, int y)
   keys[key] = false; 
 }
 
-float cameraSpeedMultiplier = 0.0005f; //temporary variable just used as camera speed
+float cameraSpeedMultiplier = 0.003f; //temporary variable just used as camera speed
+
+ChunkPosition playerCurrentChunk;
+
+bool firstChunkLoad = false;
 
 void update()
 {
+  //printf("X: %d, Y: %d, Z: %d\n", cameraWorldPosition->x * 8, 0, cameraWorldPosition->z * 8);
+
+  int chunkX = floorf(cameraWorldPosition->x / CHUNK_WIDTH);
+  int chunkZ = floorf(cameraWorldPosition->z / CHUNK_LENGTH);
+
+  if (playerCurrentChunk.x != chunkX || playerCurrentChunk.y != chunkZ || !firstChunkLoad)
+  {
+    firstChunkLoad = true;
+
+    playerCurrentChunk.x = chunkX;
+    playerCurrentChunk.y = chunkZ;
+
+    printf("Updating chunks.");
+
+    UpdateChunks(&world, cameraWorldPosition->x, cameraWorldPosition->z, settings.renderDistance);
+  }
+
   //move camera gonna make better later
 
   if (keys['w'])
