@@ -21,8 +21,10 @@ bool keys[KEY_COUNT];
 float CENTER_X = (WINDOW_W / 2);
 float CENTER_Y = (WINDOW_H / 2);
 
+ScreenPosition mousePos = {0, 0};
+
 ScreenPosition cameraPosition = {0, 0};
-WorldPosition* cameraWorldPosition = &(WorldPosition){0, 0, 0};
+WorldPosition cameraWorldPosition = {0, 0, 0};
 
 float zoom = 0.045f;
 
@@ -83,9 +85,9 @@ void display()
 {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
  
-  for (int i = 0; i < world.loadedChunkCount; i++)
+  for (int i = world.loadedChunkCount - 1; i >= 0; i--)
   {
-    RenderChunk(world.loadedChunks[i], cameraPosition, zoom);
+    RenderChunk(world.loadedChunks[i], cameraPosition, zoom, cameraWorldPosition);
   }
 
   glutSwapBuffers();
@@ -111,19 +113,19 @@ void update()
 {
   //printf("X: %d, Y: %d, Z: %d\n", cameraWorldPosition->x * 8, 0, cameraWorldPosition->z * 8);
 
-  int chunkX = floorf(cameraWorldPosition->x / CHUNK_WIDTH);
-  int chunkZ = floorf(cameraWorldPosition->z / CHUNK_LENGTH);
+  cameraWorldPosition = ScreenToWorldPosition((ScreenPosition){0, 0}, zoom, cameraPosition, 0.0f);
+
+  int chunkX = floorf(cameraWorldPosition.x / CHUNK_WIDTH);
+  int chunkZ = floorf(cameraWorldPosition.z / CHUNK_LENGTH);
 
   if (playerCurrentChunk.x != chunkX || playerCurrentChunk.y != chunkZ || !firstChunkLoad)
   {
-    firstChunkLoad = true;
-
     playerCurrentChunk.x = chunkX;
     playerCurrentChunk.y = chunkZ;
 
-    printf("Updating chunks.");
+    if(!firstChunkLoad) UpdateChunks(&world, cameraWorldPosition.x, cameraWorldPosition.z, settings.renderDistance);
 
-    UpdateChunks(&world, cameraWorldPosition->x, cameraWorldPosition->z, settings.renderDistance);
+    firstChunkLoad = true;
   }
 
   //move camera gonna make better later
@@ -151,15 +153,19 @@ void update()
 void windowResize(int width, int height)
 {
   glutReshapeWindow(WINDOW_W, WINDOW_H); //lock resizing window for now
+}
 
-  spriteSize = NormalizePixels(width, height);
+void mouseMove(int x, int y)
+{
+  //mousePos.x = (2.0f * x) / WINDOW_W - 1.0f;
+  //mousePos.y = 1.0f - (2.0f * y) / WINDOW_H;
+
+  //printf("%d, %d\n", mousePos.x, mousePos.y);
 }
 
 int main(int argc, char** argv) 
 {
   glutInit(&argc, argv);    
-
-  printf("Currently running GLUT %d \n", glutGet(GLUT_API_VERSION));
 
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);        
   glutInitWindowSize(WINDOW_W, WINDOW_H);        
@@ -183,7 +189,7 @@ int main(int argc, char** argv)
 
   glutReshapeFunc(windowResize);
 
-  spriteSize = NormalizePixels(WINDOW_W, WINDOW_H);
+  glutPassiveMotionFunc(mouseMove);
 
   glutMainLoop();      
   return 0;   

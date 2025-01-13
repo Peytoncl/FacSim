@@ -17,9 +17,6 @@ typedef struct
     int y;
 } ChunkPosition;
 
-float centerThreshold = 10;
-
-ScreenPosition* spriteSize;
 
 ScreenPosition WorldToScreenPosition(WorldPosition position, float zoom, ScreenPosition cameraPos)
 {
@@ -35,11 +32,17 @@ ScreenPosition WorldToScreenPosition(WorldPosition position, float zoom, ScreenP
     return screenPos;
 }
 
-WorldPosition ScreenToWorldPosition(ScreenPosition position, float zoom, ScreenPosition cameraPos)
+WorldPosition ScreenToWorldPosition(ScreenPosition position, float zoom, ScreenPosition cameraPos, float height)
 {
     
-    
-    
+    float x = ((position.x - cameraPos.x) / 2 + zoom * height - (position.y - cameraPos.y)) / zoom;
+
+    float z = (position.x - cameraPos.x) / zoom - x;
+
+    printf("X: %f, Y: %f, Z: %f\n", x, height, z);
+
+    return (WorldPosition){roundf(x), roundf(height), roundf(z)};
+
 }
 
 // ### CHUNK SYSTEM ###
@@ -193,6 +196,7 @@ Chunk* LoadChunk(World* world, ChunkPosition position)
     {
         for (int z = 0; z < CHUNK_LENGTH; z++)
         {
+            /*
             GetBiome(chunk, (WorldPosition){x, 0, z});
 
             float rawNoise = stb_perlin_noise3((x + chunkX) * noiseScale + seed, 0.0f, (z + chunkZ) * noiseScale + seed, 0, 0, 0); //use stb_perlin.h for perlin noise value at x and z positions with a chunk and seed offset and noise multiplier
@@ -220,6 +224,8 @@ Chunk* LoadChunk(World* world, ChunkPosition position)
             if (height < 0) height = 0;
             if (height > CHUNK_HEIGHT) height = CHUNK_HEIGHT;
 
+            */
+
             /*
             if (chunk.biomeMap[x][z] == OCEAN)
             {
@@ -230,6 +236,9 @@ Chunk* LoadChunk(World* world, ChunkPosition position)
             }*/
 
             //printf("X: %d, Y: %d, Z: %d\n", x, height, z);
+
+            int height = 0; //delete later
+            Block block = (Block){1, 0}; //delete later
 
             chunk->blocks[x][height][z] = block;
 
@@ -262,7 +271,7 @@ void UpdateChunks(World* world, int playerX, int playerZ, int renderDistance)
     int playerChunkX = playerX / CHUNK_WIDTH;
     int playerChunkZ = playerZ / CHUNK_LENGTH;
 
-    for (int distanceX = -renderDistance; distanceX <= renderDistance; distanceX++) //Load chunks that are in the render distance
+    for (int distanceX = renderDistance; distanceX >= -renderDistance; distanceX--) //Load chunks that are in the render distance
     {
         for (int distanceZ = -renderDistance; distanceZ <= renderDistance; distanceZ++)
         {
@@ -294,8 +303,11 @@ void UpdateChunks(World* world, int playerX, int playerZ, int renderDistance)
 
 }
 
-void RenderChunk(Chunk* chunk, ScreenPosition cameraPosition, float zoom)
+void RenderChunk(Chunk* chunk, ScreenPosition cameraPosition, float zoom, WorldPosition cameraWorldPos)
 {
+    int chunkX = chunk->position.x * CHUNK_LENGTH;
+    int chunkZ = chunk->position.y * CHUNK_WIDTH;
+
     for (int y = 0; y < CHUNK_HEIGHT; y++)
     {
         for (int x = 0; x < CHUNK_WIDTH; x++)
@@ -307,8 +319,10 @@ void RenderChunk(Chunk* chunk, ScreenPosition cameraPosition, float zoom)
 
                 if (block.blockID == 0) continue;
 
-                int chunkX = chunk->position.x * CHUNK_LENGTH;
-                int chunkZ = chunk->position.y * CHUNK_WIDTH;
+                if (x + chunkX == cameraWorldPos.x && y == cameraWorldPos.y && z + chunkZ == cameraWorldPos.z)
+                {
+                    block = (Block){0, 0};
+                }
 
                 if (block.metadata == 1 && chunk->blocks[x][y + 1][z].blockID == block.blockID) continue;
 
