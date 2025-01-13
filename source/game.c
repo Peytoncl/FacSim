@@ -21,14 +21,14 @@ bool keys[KEY_COUNT];
 float CENTER_X = (WINDOW_W / 2);
 float CENTER_Y = (WINDOW_H / 2);
 
-ScreenPosition cameraPosition = (ScreenPosition){0, 0};
+ScreenPosition cameraPosition = {0, 0};
 WorldPosition* cameraWorldPosition = &(WorldPosition){0, 0, 0};
 
 float zoom = 0.045f;
 
 GLuint textureID; //Spritesheet textureId in GPU
 
-Settings settings = (Settings){2}; //Render distance of 2 
+Settings settings = {2}; //Render distance of 2 
 
 Player player;
 

@@ -37,9 +37,8 @@ ScreenPosition WorldToScreenPosition(WorldPosition position, float zoom, ScreenP
 
 WorldPosition ScreenToWorldPosition(ScreenPosition position, float zoom, ScreenPosition cameraPos)
 {
-    float realPosX = position.x + cameraPos.x; //might have to change to negatives
-    float realPosY = position.y + cameraPos.y;
-
+    
+    
     
 }
 
