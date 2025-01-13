@@ -113,7 +113,7 @@ void update()
 {
   //printf("X: %d, Y: %d, Z: %d\n", cameraWorldPosition->x * 8, 0, cameraWorldPosition->z * 8);
 
-  cameraWorldPosition = ScreenToWorldPosition((ScreenPosition){0, 0}, zoom, cameraPosition, 0.0f);
+  cameraWorldPosition = ScreenToWorldPosition(mousePos, zoom, cameraPosition, 0.0f);
 
   int chunkX = floorf(cameraWorldPosition.x / CHUNK_WIDTH);
   int chunkZ = floorf(cameraWorldPosition.z / CHUNK_LENGTH);
@@ -157,8 +157,11 @@ void windowResize(int width, int height)
 
 void mouseMove(int x, int y)
 {
-  //mousePos.x = (2.0f * x) / WINDOW_W - 1.0f;
-  //mousePos.y = 1.0f - (2.0f * y) / WINDOW_H;
+  float ndc_x = (float)x / WINDOW_W * 2 - 1;
+  float ndc_y = (float)y / WINDOW_H * 2 - 1;
+
+  mousePos.x = ndc_x;
+  mousePos.y = -ndc_y;
 
   //printf("%d, %d\n", mousePos.x, mousePos.y);
 }
