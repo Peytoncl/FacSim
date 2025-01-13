@@ -4,6 +4,13 @@
 
 #include "graphics.h"
 
+#define CHUNK_WIDTH 16
+#define CHUNK_HEIGHT 128
+#define CHUNK_LENGTH 16
+
+
+// ### TYPES ###
+
 typedef struct 
 {
     int x;
@@ -17,49 +24,11 @@ typedef struct
     int y;
 } ChunkPosition;
 
-
-ScreenPosition WorldToScreenPosition(WorldPosition position, float zoom, ScreenPosition cameraPos)
-{
-    //really tedius calculation i had to find out after a bunch of trial and error and adjusting each value number by number
-    float xPos = zoom * (float)position.z + (zoom) * (float)position.x;
-    float yPos = (zoom / 2) * (float)position.z - (zoom / 2) * (float)position.x + (zoom) * position.y;
-
-    ScreenPosition screenPos;
-    
-    screenPos.x = xPos + cameraPos.x;
-    screenPos.y = yPos + cameraPos.y;
-
-    return screenPos;
-}
-
-WorldPosition ScreenToWorldPosition(ScreenPosition position, float zoom, ScreenPosition cameraPos, float height)
-{
-    
-    float x = ((position.x - cameraPos.x) / 2 + zoom * height - (position.y - cameraPos.y)) / zoom;
-
-    float z = (position.x - cameraPos.x) / zoom - x;
-
-    printf("X: %f, Y: %f, Z: %f\n", x, height, z);
-
-    return (WorldPosition){roundf(x), roundf(height), roundf(z)};
-
-}
-
-// ### CHUNK SYSTEM ###
-
-#define STB_PERLIN_IMPLEMENTATION
-#include "external_headers/stb_perlin.h"
-
 typedef struct 
 {
     unsigned short blockID;
     unsigned char metadata; //1 is transparent
 } Block;
-
-
-#define CHUNK_WIDTH 16
-#define CHUNK_HEIGHT 128
-#define CHUNK_LENGTH 16
 
 typedef enum {
     PLAINS,
@@ -87,6 +56,42 @@ typedef struct
 
     uint32_t seed; //Seed needs to go here eventually
 } World;
+
+
+// ### MATRIX ###
+
+ScreenPosition WorldToScreenPosition(WorldPosition position, float zoom, ScreenPosition cameraPos)
+{
+    //really tedius calculation i had to find out after a bunch of trial and error and adjusting each value number by number
+    float xPos = zoom * (float)position.z + (zoom) * (float)position.x;
+    float yPos = (zoom / 2) * (float)position.z - (zoom / 2) * (float)position.x + (zoom) * position.y;
+
+    ScreenPosition screenPos;
+    
+    screenPos.x = xPos + cameraPos.x;
+    screenPos.y = yPos + cameraPos.y;
+
+    return screenPos;
+}
+
+WorldPosition ScreenToWorldPosition(World world, ScreenPosition position, float zoom, ScreenPosition cameraPos, float height)
+{
+    
+    float x = ((position.x - cameraPos.x) / 2 + zoom * height - (position.y - cameraPos.y)) / zoom;
+
+    float z = (position.x - cameraPos.x) / zoom - x;
+
+    printf("X: %f, Y: %f, Z: %f\n", x, height, z);
+
+    return (WorldPosition){roundf(x), roundf(height), roundf(z)};
+
+}
+
+
+// ### CHUNK SYSTEM ###
+
+#define STB_PERLIN_IMPLEMENTATION
+#include "external_headers/stb_perlin.h"
 
 float seed;
 

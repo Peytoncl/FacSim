@@ -113,7 +113,9 @@ void update()
 {
   //printf("X: %d, Y: %d, Z: %d\n", cameraWorldPosition->x * 8, 0, cameraWorldPosition->z * 8);
 
-  cameraWorldPosition = ScreenToWorldPosition(mousePos, zoom, cameraPosition, 0.0f);
+  WorldPosition mouseWorldPos = ScreenToWorldPosition(world, mousePos, zoom, cameraPosition, 0.0f);
+
+  if (mouseWorldPos.y != -1) cameraWorldPosition = mouseWorldPos;
 
   int chunkX = floorf(cameraWorldPosition.x / CHUNK_WIDTH);
   int chunkZ = floorf(cameraWorldPosition.z / CHUNK_LENGTH);
