@@ -27,6 +27,17 @@ typedef struct
 float spriteWidth = 32.0f / 2048.0f; 
 float spriteHeight = 32.0f / 2048.0f;
 
+ScreenPosition* NormalizePixels(int screenWidth, int screenHeight)
+{
+    int imageWidth = 32;
+    int imageHeight = 32;
+    
+    // Calculate normalized dimensions
+    float normalizedWidth = (float)imageWidth / screenWidth * 2.0f;
+    float normalizedHeight = (float)imageHeight / screenHeight * 2.0f;
+
+    return &(ScreenPosition){normalizedWidth, normalizedHeight};
+}
 
 GLuint LoadTexture(const char* filename) //Load an image file with stb_image.h
 {

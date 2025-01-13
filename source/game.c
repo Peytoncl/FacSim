@@ -28,7 +28,6 @@ float zoom = 0.045f;
 
 GLuint textureID; //Spritesheet textureId in GPU
 
-
 Settings settings = (Settings){2}; //Render distance of 2 
 
 Player player;
@@ -152,11 +151,15 @@ void update()
 void windowResize(int width, int height)
 {
   glutReshapeWindow(WINDOW_W, WINDOW_H); //lock resizing window for now
+
+  spriteSize = NormalizePixels(width, height);
 }
 
 int main(int argc, char** argv) 
 {
   glutInit(&argc, argv);    
+
+  printf("Currently running GLUT %d \n", glutGet(GLUT_API_VERSION));
 
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);        
   glutInitWindowSize(WINDOW_W, WINDOW_H);        
@@ -179,6 +182,8 @@ int main(int argc, char** argv)
   glutKeyboardUpFunc(keyUp);  
 
   glutReshapeFunc(windowResize);
+
+  spriteSize = NormalizePixels(WINDOW_W, WINDOW_H);
 
   glutMainLoop();      
   return 0;   

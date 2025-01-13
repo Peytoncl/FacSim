@@ -19,14 +19,13 @@ typedef struct
 
 float centerThreshold = 10;
 
+ScreenPosition* spriteSize;
+
 ScreenPosition WorldToScreenPosition(WorldPosition position, float zoom, ScreenPosition cameraPos)
 {
     //really tedius calculation i had to find out after a bunch of trial and error and adjusting each value number by number
     float xPos = zoom * (float)position.z + (zoom) * (float)position.x;
     float yPos = (zoom / 2) * (float)position.z - (zoom / 2) * (float)position.x + (zoom) * position.y;
-
-    //int worldX = (int)roundf((float)xPos / (float)centerThreshold);
-    //int worldY = (int)roundf((float)yPos / (float)centerThreshold);
 
     ScreenPosition screenPos;
     
@@ -41,8 +40,7 @@ WorldPosition ScreenToWorldPosition(ScreenPosition position, float zoom, ScreenP
     float realPosX = position.x + cameraPos.x; //might have to change to negatives
     float realPosY = position.y + cameraPos.y;
 
-    float offsetPosX;
-    float offsetPosY; //need to finish this function
+    
 }
 
 // ### CHUNK SYSTEM ###
